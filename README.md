@@ -1,4 +1,4 @@
-# zclust - Deep Embedded Clustering of Seismic Signals with Convolutional Autoencoder
+# zClust - Deep Embedded Clustering of Seismic Signals with Convolutional Autoencoder
 
 ![overview](./images/01_overview.png)
 
