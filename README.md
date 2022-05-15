@@ -11,7 +11,7 @@ in the latent feature space and the parameters of a deep neural network that
 maps data points into latent feature space. It consists two phase:
 1. parameter initialization with a deep convolutional autoencoder
 2. parameter optimization (i.e., clustering), where in an iterative manner, an
-auxiliary target distribution is computed and the Kullback–Leibler (KL)
+auxiliary target distribution is computed and the Kullback-Leibler (KL)
 divergence to it is minimized.
 
 As input, the model uses spectrograms computed using the short-time Fourier
@@ -90,7 +90,7 @@ distribution,
 
 3. finally, clusters are refined by learning from their high confidence
 assignments with the help of the auxiliary target distributionby. The objective
-is to minimize the KullbackLeibler (KL) divergence between the soft assignments,
+is to minimize the Kullback-Leibler (KL) divergence between the soft assignments,
 <img src="https://render.githubusercontent.com/render/math?math=q_{nk}">,
 and the target distribution,
 <img src="https://render.githubusercontent.com/render/math?math=p_{nk}">.
