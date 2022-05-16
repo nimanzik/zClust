@@ -96,7 +96,12 @@ and the target distribution,
 <img src="https://render.githubusercontent.com/render/math?math=p_{nk}">.
 
 
-#### References
+### References
 * Xie, J., Girshick, R., & Farhadi, A. (2016). Unsupervised deep embedding for
 clustering analysis. In International conference on machine learning
 (pp. 478-487). PMLR.
+
+### Contact Information
+- Nima Nooshiri - nima.nooshiri@gmail.com
+
+Any feedback/suggestions are welcome.
