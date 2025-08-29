@@ -17,19 +17,6 @@ divergence to it is minimized.
 As input, the model uses spectrograms computed using the short-time Fourier
 transform (STFT).
 
-
-## Dependencies
-
-- Python (== 3.9, with development headers)
-- NumPy (== 1.22.3)
-- SciPy (== 1.8.0)
-- [PyTorch](https://pytorch.org/) (== 1.11.0)
-- [scikit-learn](https://scikit-learn.org/stable/) (== 1.0.2)
-- [xarray](https://docs.xarray.dev/en/stable/) (== 2022.3.0)
-- [Pyrocko](https://pyrocko.org/) (== 2021.09.14)
-- [Joblib](https://joblib.readthedocs.io/en/latest/) (== 1.1.0)
-
-
 ## Convolutional Autoencoder (CAE)
 <p align="center">
     <img src="./images/02_cae.png">
@@ -46,8 +33,7 @@ The autoencoder is composed of convolutional and transposed convolutional
 layers and minimizes the mean squared error (MSE) between an input spectrogram
 and its reconstruction.
 
-
-### Dimensionality Reduction
+## Dimensionality Reduction
 <p align="center">
     <img src="./images/03_embedding.png">
 </p>
@@ -59,8 +45,7 @@ transposed convolutional layers, the structure of the spectrogram is largely
 preserved, with the salient information of the input encoded to the latent
 feature space.
 
-
-# Deep Embedded Clustering (DEC)
+## Deep Embedded Clustering (DEC)
 <p align="center">
     <img src="./images/04_dec.png">
 </p>
@@ -87,13 +72,23 @@ assignments with the help of the auxiliary target distributionby. The objective
 is to minimize the Kullback-Leibler (KL) divergence between the soft assignments, $q_{nk}$,
 and the target distribution, $p_{nk}$.
 
+## Dependencies
 
-### References
+- Python (== 3.9, with development headers)
+- NumPy (== 1.22.3)
+- SciPy (== 1.8.0)
+- [PyTorch](https://pytorch.org/) (== 1.11.0)
+- [scikit-learn](https://scikit-learn.org/stable/) (== 1.0.2)
+- [xarray](https://docs.xarray.dev/en/stable/) (== 2022.3.0)
+- [Pyrocko](https://pyrocko.org/) (== 2021.09.14)
+- [Joblib](https://joblib.readthedocs.io/en/latest/) (== 1.1.0)
+
+## References
 * Xie, J., Girshick, R., & Farhadi, A. (2016). Unsupervised deep embedding for
 clustering analysis. In International conference on machine learning
 (pp. 478-487). PMLR.
 
 ### Contact Information
-- Nima Nooshiri - nima.nooshiri@gmail.com
+- Nima Nooshiri – <nima.nooshiri@gmail.com> | <nima.nooshiri@gmx.de>
 
 Any feedback/suggestions are welcome.
