@@ -1,4 +1,4 @@
-# zClust - Deep Embedded Clustering of Seismic Signals with Convolutional Autoencoder
+# zClust - Deep Embedded Clustering of Seismic Signals with Fully Convolutional Autoencoder
 
 ![overview](./images/01_overview.png)
 
@@ -76,24 +76,16 @@ centroids.
 
 In this step:
 1. first, soft assignment is performed, meaning that the degree of similarity
-(or membership probability),
-<img src="https://render.githubusercontent.com/render/math?math=q_{nk}">,
-is measured between each embedded point,
-<img src="https://render.githubusercontent.com/render/math?math=z_{n}">,
-and cluster centroids,
-<img src="https://render.githubusercontent.com/render/math?math=\mu_{k}">,
-are calculated using Student’s t-distribution.
+(or membership probability), $$q_{nk}$$, is measured between each embedded point, $z_{n}$,
+and cluster centroids, $\mu_{k}$, are calculated using Student’s t-distribution.
 
 2. then, the soft assignments are used to compute an auxiliary target
-distribution,
-<img src="https://render.githubusercontent.com/render/math?math=p_{nk}">.
+distribution, $p_{nk}$.
 
 3. finally, clusters are refined by learning from their high confidence
 assignments with the help of the auxiliary target distributionby. The objective
-is to minimize the Kullback-Leibler (KL) divergence between the soft assignments,
-<img src="https://render.githubusercontent.com/render/math?math=q_{nk}">,
-and the target distribution,
-<img src="https://render.githubusercontent.com/render/math?math=p_{nk}">.
+is to minimize the Kullback-Leibler (KL) divergence between the soft assignments, $q_{nk}$,
+and the target distribution, $p_{nk}$.
 
 
 ### References
