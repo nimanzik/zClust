@@ -1,4 +1,4 @@
-# Deep Embedded Clustering of Seismic Signals with Fully Convolutional Autoencoder
+# Deep Embedded Clustering of Seismic Spectrograms with Fully Convolutional Autoencoder
 
 ![overview](./images/01_overview.png)
 
