@@ -35,7 +35,8 @@ class ConvEncoder(nn.Module):
             nn.Flatten(),
             # (N, 1152) -> (N, 9)
             nn.Linear(1152, 9),
-            nn.LeakyReLU(lrelu_coeff))
+            nn.LeakyReLU(lrelu_coeff),
+        )
 
     def forward(self, x):
         """
@@ -60,9 +61,7 @@ class ConvDecoder(nn.Module):
 
     def __init__(self, lrelu_coeff=0.02):
         super().__init__()
-        self.z2d = nn.Sequential(
-            nn.Linear(9, 1152),
-            nn. LeakyReLU(lrelu_coeff))
+        self.z2d = nn.Sequential(nn.Linear(9, 1152), nn.LeakyReLU(lrelu_coeff))
         self.decoder = nn.Sequential(
             # (N, 128, 3, 3) -> (N, 64, 5, 5)
             nn.ConvTranspose2d(128, 64, (3, 3), stride=(2, 2), padding=(1, 1)),
@@ -78,7 +77,8 @@ class ConvDecoder(nn.Module):
             nn.LeakyReLU(lrelu_coeff),
             # (N, 8, 45, 35) -> (N, 1, 89, 69)
             nn.ConvTranspose2d(8, 1, (3, 3), stride=(2, 2), padding=(1, 1)),
-            nn.LeakyReLU(lrelu_coeff))
+            nn.LeakyReLU(lrelu_coeff),
+        )
 
     def forward(self, z):
         d = self.z2d(z)
@@ -136,12 +136,12 @@ class STDSoftClustering(nn.Module):
         # https://pytorch.org/docs/stable/notes/extending.html#adding-a-module
         if centroid is None:
             centroid = torch.empty(
-                (self.n_clusters, self.n_features), dtype=torch.float32)
+                (self.n_clusters, self.n_features), dtype=torch.float32
+            )
             nn.init.xavier_uniform_(centroid)
             self.centroid = nn.Parameter(centroid)
         else:
-            self.centroid = nn.Parameter(
-                torch.from_numpy(centroid.astype(np.float32)))
+            self.centroid = nn.Parameter(torch.from_numpy(centroid.astype(np.float32)))
 
     def forward(self, z):
         """
@@ -158,7 +158,7 @@ class STDSoftClustering(nn.Module):
         # First, distances with shape of (n_samples, n_clusters, n_features)
         q = z.unsqueeze(1) - self.centroid
         q = torch.mul(q, q)
-        q = torch.sum(q, dim=2)   # shape: (n_samples, n_clusters)
+        q = torch.sum(q, dim=2)  # shape: (n_samples, n_clusters)
         q = 1.0 + (q / self.dof)
         q = torch.pow(q, -0.5 * (self.dof + 1))
         q = q / torch.sum(q, dim=1, keepdim=True)
@@ -171,17 +171,14 @@ class ConvAutoEncoderDEC(nn.Module):
     """
 
     def __init__(
-            self, *, n_clusters, n_features, centroid=None, dof=1,
-            lrelu_coeff=0.02):
-
+        self, *, n_clusters, n_features, centroid=None, dof=1, lrelu_coeff=0.02
+    ):
         super().__init__()
         self.encoder = ConvEncoder(lrelu_coeff=lrelu_coeff)
         self.decoder = ConvDecoder(lrelu_coeff=lrelu_coeff)
         self.clusterer = STDSoftClustering(
-            n_clusters=n_clusters,
-            n_features=n_features,
-            centroid=centroid,
-            dof=dof)
+            n_clusters=n_clusters, n_features=n_features, centroid=centroid, dof=dof
+        )
 
     def forward(self, x):
         z = self.encoder(x)
@@ -195,17 +192,12 @@ class ConvEncoderDEC(nn.Module):
     Deep embedded clustering using convolutional *encoder*.
     """
 
-    def __init__(
-            self, n_clusters, n_features, centroid=None, dof=1,
-            lrelu_coeff=0.02):
-
+    def __init__(self, n_clusters, n_features, centroid=None, dof=1, lrelu_coeff=0.02):
         super().__init__()
         self.encoder = ConvEncoder(lrelu_coeff=lrelu_coeff)
         self.clusterer = STDSoftClustering(
-            n_clusters=n_clusters,
-            n_features=n_features,
-            centroid=centroid,
-            dof=dof)
+            n_clusters=n_clusters, n_features=n_features, centroid=centroid, dof=dof
+        )
 
     def forward(self, x):
         z = self.encoder(x)
