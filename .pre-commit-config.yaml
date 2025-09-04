@@ -7,7 +7,7 @@ repos:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
         types_or: [python, pyi, jupyter]
-      
+
       # Run ruff formatter
       - id: ruff-format
         types_or: [python, pyi, jupyter]
@@ -19,21 +19,21 @@ repos:
       # Remove trailing whitespace
       - id: trailing-whitespace
         exclude: \.md$
-      
+
       # Ensure files end with newline
       - id: end-of-file-fixer
         exclude: \.md$
-      
+
       # Check for large files (>500KB)
       - id: check-added-large-files
         args: [--maxkb=500]
-      
+
       # Check YAML syntax
       - id: check-yaml
-      
+
       # Check TOML syntax
       - id: check-toml
-      
+
       # Prevent commits to main/master
       - id: no-commit-to-branch
         args: [--branch, main, --branch, master]

@@ -1,0 +1,28 @@
+[project]
+name = "zclust"
+version = "0.1.0"
+description = "Deep Embedded Clustering of Seismic Spectrograms with Fully Convolutional Autoencoder"
+readme = "README.md"
+authors = [
+    { name = "Nima Nooshiri", email = "nima.nooshiri@gmail.com" }
+]
+requires-python = ">=3.9"
+dependencies = [
+    "joblib==1.1.0",
+    "numpy==1.22.3",
+    "pyrocko==2022.4.28",
+    "scikit-learn==1.0.2",
+    "scipy==1.8.0",
+    "torch==1.11.0",
+    "xarray==2022.3.0",
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.3.0",
+    "ruff>=0.12.12",
+]
