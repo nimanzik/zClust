@@ -1,0 +1,60 @@
+repos:
+  # Ruff for linting and formatting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.9.6  # Use same version as in dev dependencies
+    hooks:
+      # Run ruff linter
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        types_or: [python, pyi, jupyter]
+      
+      # Run ruff formatter
+      - id: ruff-format
+        types_or: [python, pyi, jupyter]
+
+  # Basic file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      # Remove trailing whitespace
+      - id: trailing-whitespace
+        exclude: \.md$
+      
+      # Ensure files end with newline
+      - id: end-of-file-fixer
+        exclude: \.md$
+      
+      # Check for large files (>500KB)
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      
+      # Check YAML syntax
+      - id: check-yaml
+      
+      # Check TOML syntax
+      - id: check-toml
+      
+      # Prevent commits to main/master
+      - id: no-commit-to-branch
+        args: [--branch, main, --branch, master]
+
+  # MyPy type checking (optional - can be slow)
+  # Uncomment if you want type checking in pre-commit
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v1.15.0
+  #   hooks:
+  #     - id: mypy
+  #       additional_dependencies: [types-all]
+  #       args: [--ignore-missing-imports]
+  #       exclude: ^(tests/|examples/)
+
+# Global configuration
+default_language_version:
+  python: python3.12
+
+# Skip slow hooks during commit, run them in CI
+ci:
+  skip: []
+
+# Automatically fix issues when possible
+fail_fast: false
