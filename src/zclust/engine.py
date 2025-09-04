@@ -8,21 +8,29 @@ from log_util import custom_logger
 import torch
 
 
-logger = custom_logger('engine')
+logger = custom_logger("engine")
 
 
 class BaseTrainer(ABC):
     def __init__(
-            self, *, model, optimizer, loss_fns, data_loader, device,
-            loss_weights=None, n_epochs=1, log_interval=10):
-
+        self,
+        *,
+        model,
+        optimizer,
+        loss_fns,
+        data_loader,
+        device,
+        loss_weights=None,
+        n_epochs=1,
+        log_interval=10,
+    ):
         self.model = model
         self.optimizer = optimizer
-        self.loss_fns = loss_fns   # list of loss functions
+        self.loss_fns = loss_fns  # list of loss functions
         self.data_loader = data_loader
         self.device = device
         self.n_epochs = n_epochs
-        self.loss_weights = loss_weights   # list of floats or None
+        self.loss_weights = loss_weights  # list of floats or None
         self.log_interval = log_interval
         self.n_samples = len(self.data_loader.dataset)
         self.n_batches = len(self.data_loader)
@@ -91,17 +99,17 @@ class BaseTrainer(ABC):
         # Logging
         nd = int(np.floor(np.log10(self.n_batches))) + 1
         batch_num = i_batch + 1
-        if (batch_num % self.log_interval == 0) \
-                or (batch_num == self.n_batches):
-
+        if (batch_num % self.log_interval == 0) or (batch_num == self.n_batches):
             formatted_bc = np.format_float_scientific(
-                batch_cost, unique=False, precision=6)
+                batch_cost, unique=False, precision=6
+            )
 
             logger.info(
-                f'\u251C\u2500 Batch '   # use box-drawing characters
-                f'[{batch_num:{nd}d}/{self.n_batches:{nd}d} '
-                f'({(batch_num / self.n_batches * 100):3.0f}%)] '
-                f'Cost: {formatted_bc}')
+                f"\u251c\u2500 Batch "  # use box-drawing characters
+                f"[{batch_num:{nd}d}/{self.n_batches:{nd}d} "
+                f"({(batch_num / self.n_batches * 100):3.0f}%)] "
+                f"Cost: {formatted_bc}"
+            )
 
         return batch_cost
 
@@ -117,7 +125,7 @@ class BaseTrainer(ABC):
         Epoch average training cost.
         """
         epoch_num = i_epoch + 1
-        logger.info(f'Train epoch {epoch_num}/{self.n_epochs}')
+        logger.info(f"Train epoch {epoch_num}/{self.n_epochs}")
 
         # Switch to train mode
         self.model.train()
@@ -130,17 +138,14 @@ class BaseTrainer(ABC):
         # -----
         # Epoch average training cost
         epoch_cost /= self.n_samples
-        formatted_ec = np.format_float_scientific(
-            epoch_cost, unique=False, precision=6)
-        logger.info(
-            f'\u2514\u2500 Average running cost: '
-            f'\033[1m{formatted_ec}\033[0m')
+        formatted_ec = np.format_float_scientific(epoch_cost, unique=False, precision=6)
+        logger.info(f"\u2514\u2500 Average running cost: \033[1m{formatted_ec}\033[0m")
 
         return epoch_cost
 
     def train_all_epochs(self) -> None:
         tic = datetime.now()
-        self.train_id = tic.strftime('%Y-%m-%d_%H-%M-%S')
+        self.train_id = tic.strftime("%Y-%m-%d_%H-%M-%S")
 
         train_costs = []
         for i_epoch in range(self.n_epochs):
@@ -172,7 +177,7 @@ class ConvAutoEncoderTrainer(BaseTrainer):
         """
         xs = xs.to(self.device)
         xs_rec, _ = self.model(xs)
-        rec_cost = self.loss_fn(xs_rec, xs)   # MSELoss
+        rec_cost = self.loss_fn(xs_rec, xs)  # MSELoss
         return rec_cost
 
 
@@ -194,8 +199,7 @@ class BaseDECTrainer(BaseTrainer):
         super().__init__(**kwargs)
 
         if tol < 0.0 or tol > 1.00:
-            raise ValueError(
-                f'Threshold value must be between 0 and 100: {tol}')
+            raise ValueError(f"Threshold value must be between 0 and 100: {tol}")
 
         self.n_clusters = n_clusters
         self.tol = tol
@@ -216,15 +220,16 @@ class BaseDECTrainer(BaseTrainer):
         self.model.eval()
 
         soft_assignments = torch.empty(
-            (self.n_samples, self.n_clusters), dtype=torch.float32)
+            (self.n_samples, self.n_clusters), dtype=torch.float32
+        )
 
         with torch.no_grad():
             for i_batch, xs in enumerate(self.data_loader):
                 xs = xs.to(self.device)
-                qs = self.model(xs)[0]   # Model must return Qs as 1st output
+                qs = self.model(xs)[0]  # Model must return Qs as 1st output
                 i_start = i_batch * self.data_loader.batch_size
-                i_stop = i_start + xs.shape[0]   # Size of current batch
-                soft_assignments[i_start: i_stop] = qs.cpu()
+                i_stop = i_start + xs.shape[0]  # Size of current batch
+                soft_assignments[i_start:i_stop] = qs.cpu()
 
         # Should we switch back to train mode?
         if training is True:
@@ -234,11 +239,10 @@ class BaseDECTrainer(BaseTrainer):
 
     def train_all_epochs(self) -> None:
         tic = datetime.now()
-        self.train_id = tic.strftime('%Y-%m-%d_%H-%M-%S')
+        self.train_id = tic.strftime("%Y-%m-%d_%H-%M-%S")
 
         train_costs = []
         for i_epoch in range(self.n_epochs):
-
             # Soft clusterings 'before' training this epoch
             q_pre = self.eval_soft_assignments()
             labels_pre = torch.argmax(q_pre, dim=1)
@@ -247,19 +251,20 @@ class BaseDECTrainer(BaseTrainer):
             epoch_cost = self.train_one_epoch(i_epoch)
             train_costs.append(epoch_cost)
 
-            logger.info('Checking stopping criterion.....[!n]')
+            logger.info("Checking stopping criterion.....[!n]")
             # Soft clusterings 'after' training this epoch
             q_post = self.eval_soft_assignments()
             labels_post = torch.argmax(q_post, dim=1)
 
             delta_labels = torch.sum(labels_pre != labels_post).item()
-            delta_labels *= (100.0 / self.n_samples)
-            print('done')
+            delta_labels *= 100.0 / self.n_samples
+            print("done")
 
             if delta_labels < self.tol:
                 logger.warning(
-                    f'\033[1mStopped training. Cluster assignment change '
-                    f'reached less than {self.tol}%\033[0m')
+                    f"\033[1mStopped training. Cluster assignment change "
+                    f"reached less than {self.tol}%\033[0m"
+                )
                 break
 
         toc = datetime.now()
@@ -302,7 +307,7 @@ class ConvEncoderDECTrainer(BaseDECTrainer):
         ps = ps / torch.sum(ps, dim=1, keepdim=True)
         ps = ps.detach()
 
-        clust_cost = self.loss_fn(torch.log(qs), ps) / xs.shape[0]   # KLDiv
+        clust_cost = self.loss_fn(torch.log(qs), ps) / xs.shape[0]  # KLDiv
         return clust_cost
 
 
@@ -346,8 +351,8 @@ class ConvAutoEncoderDECTrainer(BaseDECTrainer):
 
         # Clustering cost (KLDiv)
         clust_cost = (
-            self.loss_weights[1]
-            * self.loss_fns[1](torch.log(qs), ps) / xs.shape[0])
+            self.loss_weights[1] * self.loss_fns[1](torch.log(qs), ps) / xs.shape[0]
+        )
 
         total_cost = rec_cost + clust_cost
         return total_cost

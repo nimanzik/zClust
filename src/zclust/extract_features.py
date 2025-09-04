@@ -16,8 +16,8 @@ from classes import FeatureExtractConfig, DummyEvent
 from log_util import custom_logger, set_loglevel
 
 
-logging.getLogger(f'pyrocko.io.stationxml').setLevel(logging.ERROR)
-logger = custom_logger('extract_features')
+logging.getLogger("pyrocko.io.stationxml").setLevel(logging.ERROR)
+logger = custom_logger("extract_features")
 
 
 def extend_extract(tr, tmin, tmax):
@@ -75,9 +75,10 @@ def preprocess(tr_raw, resp, preprocess_config):
     config = preprocess_config
     if config.target_fs > (fs := 1.0 / tr_raw.deltat):
         raise UnavailableDecimation(
-            f'{".".join(tr_raw.nslc_id)}: Target fs '
-            f'({config.target_fs} Hz) is greater than '
-            f'original fs ({fs} Hz)')
+            f"{'.'.join(tr_raw.nslc_id)}: Target fs "
+            f"({config.target_fs} Hz) is greater than "
+            f"original fs ({fs} Hz)"
+        )
 
     # Station response removal (including pre-filtering)
     tr_proc = tr_raw.transfer(
@@ -85,11 +86,11 @@ def preprocess(tr_raw, resp, preprocess_config):
         freqlimits=config.pre_filt,
         transfer_function=resp,
         cut_off_fading=False,
-        invert=True)
+        invert=True,
+    )
 
     # Downsampling
-    tr_proc.downsample_to(
-        config.target_deltat, snap=True, allow_upsample_max=5)
+    tr_proc.downsample_to(config.target_deltat, snap=True, allow_upsample_max=5)
     # Bandpass filtering
     tr_proc.bandpass(4, config.fmin, config.fmax)
     # Tapering
@@ -97,7 +98,8 @@ def preprocess(tr_raw, resp, preprocess_config):
         tr_proc.tmin,
         tr_proc.tmin + config.tfade_taper,
         tr_proc.tmax - config.tfade_taper,
-        tr_proc.tmax)
+        tr_proc.tmax,
+    )
     tr_proc = extend_extract(tr_proc, *taperer.time_span())
     tr_proc.taper(taperer, inplace=True, chop=False)
     return tr_proc
@@ -134,20 +136,26 @@ def compute_specgram(tr, specgram_config):
     nfft = config.nfft or trace.nextpow2(nperseg * 1.2)
 
     freqs, times, specgram = signal.spectrogram(
-        tr.ydata.astype(np.float64), fs=fs, window=window,
-        nperseg=nperseg, noverlap=noverlap, nfft=nfft)
+        tr.ydata.astype(np.float64),
+        fs=fs,
+        window=window,
+        nperseg=nperseg,
+        noverlap=noverlap,
+        nfft=nfft,
+    )
 
     return xr.DataArray(
         data=specgram,
-        coords={'freqs': freqs, 'times': times + tr.tmin},   # actual times
-        attrs={'deltat': (nperseg - noverlap) * tr.deltat,
-               'nslc_id': tr.nslc_id})
+        coords={"freqs": freqs, "times": times + tr.tmin},  # actual times
+        attrs={"deltat": (nperseg - noverlap) * tr.deltat, "nslc_id": tr.nslc_id},
+    )
 
 
 class NotEnoughData(Exception):
     """
     This exception is raised when not enough data is available.
     """
+
     pass
 
 
@@ -181,9 +189,10 @@ def compute_crop_specgram(tr_proc, tp, specgram_config):
     """
     config = specgram_config
 
-    if (((tbeg := tp - config.before_tp) < tr_proc.tmin)
-            or ((tend := tp + config.after_tp) > tr_proc.tmax)):
-        raise TraceTooShort(f'{".".join(tr_proc.nslc_id)}')
+    if ((tbeg := tp - config.before_tp) < tr_proc.tmin) or (
+        (tend := tp + config.after_tp) > tr_proc.tmax
+    ):
+        raise TraceTooShort(f"{'.'.join(tr_proc.nslc_id)}")
 
     # Chop trace to make specgram.times consistent between events
     if config.cut_first:
@@ -197,24 +206,27 @@ def compute_crop_specgram(tr_proc, tp, specgram_config):
     # Find closest sample time to tp (times are actual trace times)
     i_anchor = np.abs(specgram.times.data - tp).argmin()
     t_anchor = specgram.times.data[i_anchor]
-    i_tstart = np.argmax(
-        specgram.times.data >= (t_anchor - config.before_tp))
+    i_tstart = np.argmax(specgram.times.data >= (t_anchor - config.before_tp))
     i_tstop = i_tstart + n_tcrop
 
     if i_tstop > specgram.times.size:
         raise NotEnoughData(
-            f'{".".join(tr_proc.nslc_id)}: exceeded trace end '
-            f'({i_tstop=} > {specgram.times.size=})')
+            f"{'.'.join(tr_proc.nslc_id)}: exceeded trace end "
+            f"({i_tstop=} > {specgram.times.size=})"
+        )
 
     fmask = np.logical_or(
-        specgram.freqs.data < config.fmin,
-        specgram.freqs.data > config.fmax)
+        specgram.freqs.data < config.fmin, specgram.freqs.data > config.fmax
+    )
 
     return xr.DataArray(
         data=specgram.data[~fmask, i_tstart:i_tstop],
-        coords={'freqs': specgram.freqs.data[~fmask],
-                'times': specgram.times.data[i_tstart:i_tstop]},
-        attrs=specgram.attrs)
+        coords={
+            "freqs": specgram.freqs.data[~fmask],
+            "times": specgram.times.data[i_tstart:i_tstop],
+        },
+        attrs=specgram.attrs,
+    )
 
 
 def pipeline(tr_raw, resp, tp, pipeline_config):
@@ -268,7 +280,7 @@ def load_sort_traces(event, dataset_config):
     trs = trace.degapper(pio.load(mseed_fpath.as_posix()), maxgap=21)
     if len(trs) == 0:
         # Empty
-        logger.warning(f'Empty traces file: {mseed_fpath}')
+        logger.warning(f"Empty traces file: {mseed_fpath}")
         return trs
 
     # Computing event-station distances
@@ -323,55 +335,65 @@ def process_one_event(args):
     event, config = args
     event_id = config.dataset_config.expand_mseed_fname_template(event)
 
-    trs = load_sort_traces(event, config.dataset_config)   # sorted by dist
+    trs = load_sort_traces(event, config.dataset_config)  # sorted by dist
     ns_to_arrival = load_map_arrivals(event, config.dataset_config)
 
     for tr_raw in trs:
         try:
             resp = config.dataset_config.xmlresps.get_pyrocko_response(
-                tr_raw.nslc_id,
-                time=event.time,
-                fake_input_units='M/S')
+                tr_raw.nslc_id, time=event.time, fake_input_units="M/S"
+            )
         except stationxml.NoResponseInformation:
-            logger.warning(
-                f'No station response found: {".".join(tr_raw.nslc_id)}')
+            logger.warning(f"No station response found: {'.'.join(tr_raw.nslc_id)}")
             continue
 
         try:
             tp = ns_to_arrival[tr_raw.network, tr_raw.station].time
             x = pipeline(tr_raw, resp, tp, config.pipeline_config)
         except (
-                KeyError, UnavailableDecimation, TraceTooShort,
-                InfiniteResponse, NotEnoughData):
-            logger.exception(f'Unexpected Error: {event_id=}')
+            KeyError,
+            UnavailableDecimation,
+            TraceTooShort,
+            InfiniteResponse,
+            NotEnoughData,
+        ):
+            logger.exception(f"Unexpected Error: {event_id=}")
             continue
         else:
-            specgram_fname = \
-                config.dataset_config.expand_spcgram_fname_template(event)
-            specgram_fpath = \
-                config.dataset_config.specgram_dirpath.joinpath(specgram_fname)
+            specgram_fname = config.dataset_config.expand_spcgram_fname_template(event)
+            specgram_fpath = config.dataset_config.specgram_dirpath.joinpath(
+                specgram_fname
+            )
             # Make sure that out directory exists
             ensuredir(config.dataset_config.specgram_dirpath.as_posix())
             # Save into netCDF
-            x.to_netcdf(path=specgram_fpath.as_posix(), mode='w')
+            x.to_netcdf(path=specgram_fpath.as_posix(), mode="w")
             break
 
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument('config_file')
+    parser.add_argument("config_file")
     parser.add_argument(
-        '--num-jobs', type=int, default=1,
-        help='number of processes running in parallel')
+        "--num-jobs",
+        type=int,
+        default=1,
+        help="number of processes running in parallel",
+    )
     parser.add_argument(
-        '--force', action='store_true', default=False,
-        help='overwrite existing out directory/files')
+        "--force",
+        action="store_true",
+        default=False,
+        help="overwrite existing out directory/files",
+    )
     parser.add_argument(
-        '--loglevel',
-        metavar='LOGLEVEL', default='info',
-        choices=('critical', 'error', 'warning', 'info', 'debug'),
+        "--loglevel",
+        metavar="LOGLEVEL",
+        default="info",
+        choices=("critical", "error", "warning", "info", "debug"),
         help='set logger level to "critical", "error", "warning", "info", '
-             'or "debug" (default: info).')
+        'or "debug" (default: info).',
+    )
 
     args = parser.parse_args()
 
@@ -387,15 +409,17 @@ def main():
     except FileExistsError as error:
         if args.force:
             logger.warning(
-                'Out directory already exists and you are going to delete it.')
-            prompt = input('Do you want to continue? [Y/n] ')
-            if prompt.lower() not in ('y', 'yes'):
+                "Out directory already exists and you are going to delete it."
+            )
+            prompt = input("Do you want to continue? [Y/n] ")
+            if prompt.lower() not in ("y", "yes"):
                 return
             else:
                 rmtree(config.dataset_config.specgram_dirpath.as_posix())
         else:
             raise FileExistsError(
-                f'{error=}.\n\nTo suppress this error, use --force option.\n')
+                f"{error=}.\n\nTo suppress this error, use --force option.\n"
+            )
 
     # Check signal-processing parameters
     config.pipeline_config.preprocess_config.check_nyquist()
@@ -403,22 +427,22 @@ def main():
     # Check number of jobs
     prompt = None
     if args.num_jobs == 1:
-        logger.warning('The process will be running on single CPU.')
-        prompt = input('Do you want to continue? [Y/n] ')
+        logger.warning("The process will be running on single CPU.")
+        prompt = input("Do you want to continue? [Y/n] ")
     elif args.num_jobs == -1:
-        logger.warning(
-            f'You are going to use all available {cpu_count()} CPUs.')
-        prompt = input('Do you want to continue? [Y/n] ')
+        logger.warning(f"You are going to use all available {cpu_count()} CPUs.")
+        prompt = input("Do you want to continue? [Y/n] ")
 
-    if prompt and prompt.lower() not in ('y', 'yes'):
+    if prompt and prompt.lower() not in ("y", "yes"):
         return
 
     # Go and run the jobs!
     with Parallel(n_jobs=args.num_jobs, verbose=10) as parallel:
         _ = parallel(
             delayed(process_one_event)((event, config))
-            for event in config.dataset_config.events)
+            for event in config.dataset_config.events
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
